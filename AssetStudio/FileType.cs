@@ -11,6 +11,10 @@ namespace AssetStudio
         AssetsFile,
         BundleFile,
         WebFile,
-        ResourceFile
+        ResourceFile,
+        /// <summary>
+        /// 和远加密文件
+        /// </summary>
+        HYAssetsFile,
     }
 }

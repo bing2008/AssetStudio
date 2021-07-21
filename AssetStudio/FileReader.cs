@@ -46,6 +46,15 @@ namespace AssetStudio
                         {
                             return FileType.WebFile;
                         }
+
+                        Position = 0;
+                        magic = ReadBytes(6);
+                        Position = 0;
+                        if (HY.HYFile.headMagic.SequenceEqual(magic))
+                        {
+                            return FileType.HYAssetsFile;
+                        }
+
                         if (IsSerializedFile())
                         {
                             return FileType.AssetsFile;

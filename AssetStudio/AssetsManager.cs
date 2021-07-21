@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AssetStudio.HY;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -73,7 +74,50 @@ namespace AssetStudio
                 case FileType.WebFile:
                     LoadWebFile(reader);
                     break;
+                case FileType.HYAssetsFile:
+                    LoadHYBundleFile(reader);
+                    break;
             }
+        }
+
+        private void LoadHYBundleFile(FileReader reader, string originalPath = null)
+        {
+            Logger.Info("Loading " + reader.FileName);
+            try
+            {
+                //Decrypt HY file
+                ulong num = Decryption.Decrypt(reader);
+                reader.Position = (long)num;
+
+                var bundleFile = new BundleFile(reader);
+                foreach (var file in bundleFile.fileList)
+                {
+                    var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), file.fileName);
+                    var subReader = new FileReader(dummyPath, file.stream);
+                    if (subReader.FileType == FileType.AssetsFile)
+                    {
+                        LoadAssetsFromMemory(subReader, originalPath ?? reader.FullPath, bundleFile.m_Header.unityRevision);
+                    }
+                    else
+                    {
+                        resourceFileReaders[file.fileName] = subReader; //TODO
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                var str = $"Error while reading bundle file {reader.FileName}";
+                if (originalPath != null)
+                {
+                    str += $" from {Path.GetFileName(originalPath)}";
+                }
+                Logger.Error(str, e);
+            }
+            finally
+            {
+                reader.Dispose();
+            }
+
         }
 
         private void LoadAssetsFile(FileReader reader)
